@@ -1,0 +1,6 @@
+{
+  "extends": "@repo/typescript-config/boiler-tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src"
+  }
+}
