@@ -1,25 +1,20 @@
 import express from "express";
-import { prisma } from "@repo/database/client";
+import { mainRouter } from "./routes/mainRouter";
+
+declare global {
+  namespace Express {
+    interface Request {
+      userId: String
+    }
+  }
+}
 
 const app = express();
 const PORT = 8080;
 
+
 app.use(express.json());
-
-app.get("/users", async(req,res) => {
-  try {
-    // db call:
-    const users = await prisma.user.findMany();
-
-    res.json({
-      users: users
-    })
-  } catch (error) {
-    res.status(411).json({
-      error: error
-    })
-  }
-})
+app.use("/api/v1", mainRouter);
 
 app.listen(PORT, () => {
   console.log(`server is listening at port: ${PORT}`);
