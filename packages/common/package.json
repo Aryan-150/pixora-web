@@ -5,7 +5,8 @@
   "private": true,
   "exports": {
     ".": "./index.ts",
-    "./schema": "./zodSchemas/auth.ts"
+    "./authschema": "./zodSchemas/auth.ts",
+    "./roomschema": "./zodSchemas/room.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

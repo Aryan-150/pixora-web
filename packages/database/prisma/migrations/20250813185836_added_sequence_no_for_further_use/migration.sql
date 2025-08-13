@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "public"."Stroke" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "sequenceNo" SERIAL NOT NULL,
+ALTER COLUMN "color" SET DEFAULT 'white';

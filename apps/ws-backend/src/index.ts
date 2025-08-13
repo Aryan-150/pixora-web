@@ -15,11 +15,12 @@ wss.on("connection", (ws, request) => {
     console.log(queryParams);
     const token = queryParams.get("token");
     if(!token) throw new Error("token not found...!");
-    
 
     const decodedInfo = jwt.verify(token,JWT_SECRET) as JwtPayload;
     if(!decodedInfo || !decodedInfo.id) throw new Error("token verification failled ...!");
     
+    
+
     
     ws.on("message", (data, isBinary) => {
       const message = data.toString();

@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { signupSchema, signinSchema } from "@repo/common/schema";
+import { signupSchema, signinSchema } from "@repo/common/authschema";
+import { RoomSchema } from "@repo/common/roomschema";
 import { prisma } from "@repo/database/client";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/common";
@@ -25,7 +26,6 @@ userRouter.post("/signup", async (req, res) => {
         username: username
       }
     });
-
 
     // Check email
     const existingEmail = await prisma.user.findUnique({
@@ -76,15 +76,15 @@ userRouter.post("/signin", async (req, res) => {
       }
     })
 
-    if(!userWithEmail) throw new Error("user with given email does not exists...!");
+    if (!userWithEmail) throw new Error("user with given email does not exists...!");
     const passwordMatch = userWithEmail.password === password;
-    if(!passwordMatch) throw new Error("incorrect password...!");
+    if (!passwordMatch) throw new Error("incorrect password...!");
 
     // create a jwt:
     const userJwtToken = jwt.sign({
       id: userWithEmail.id
     }, JWT_SECRET);
-    
+
     res.json({
       msg: "signin completed...!",
       token: userJwtToken
@@ -93,14 +93,105 @@ userRouter.post("/signin", async (req, res) => {
     res.status(500).json({
       msg: error
     })
-  }  
+  }
 })
 
-userRouter.post("/create-room",userMiddleware, async (req, res) => {
+userRouter.post("/create-room", userMiddleware, async (req, res) => {
   const userId = req.userId;
+  const { success, error } = RoomSchema.safeParse(req.body);
+  if (!success) {
+    res.status(411).json({
+      msg: error.message
+    })
+    return;
+  }
 
-  res.json({
-    msg: "create room endpoint",
-    userId: userId
-  })
+  try {
+    const { roomName } = req.body;
+    const existRoom = await prisma.room.findUnique({
+      where: {
+        roomName: roomName
+      }
+    })
+    if (existRoom) throw new Error("room name already taken ...!");
+
+    const response = await prisma.room.create({
+      data: {
+        roomName: roomName,
+        adminId: userId
+      }
+    })
+
+    res.json({
+      msg: "room created ...!",
+      roomName: response.roomName,
+      roomId: response.id
+    })
+
+  } catch (error) {
+    res.status(411).json({
+      msg: error
+    })
+  }
 })
+
+userRouter.post("join-room", userMiddleware, async (req, res) => {
+  const userId = req.userId;
+  const { success, error } = RoomSchema.safeParse(req.body);
+  if(!success){
+    res.status(411).json({
+      msg: error.message
+    })
+    return;
+  }
+
+  try {
+    const { roomName } = req.body;
+    const existRoom = await prisma.room.findUnique({
+      where: {
+        roomName: roomName
+      }
+    })
+    if(!existRoom) throw new Error("Invalid room name, try a valid one ...!");
+
+    const roomId = existRoom.id;
+    await prisma.usersOnRooms.create({
+      data: {
+        userId: userId,
+        roomId: roomId
+      }
+    })
+
+    const usersInRoom = await prisma.room.findMany({
+      where: {
+        id: roomId
+      },
+      select: {
+        roomName: true,
+        adminId: true,
+        users: {
+          select: {
+            user: {
+              select: {
+                username: true,
+                avatar: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    res.json({
+      msg: "joined the room successfully ...!",
+      usersInRoom: usersInRoom
+    })
+    
+  } catch (error) {
+    res.status(411).json({
+      msg: error
+    })
+  }
+
+})
+

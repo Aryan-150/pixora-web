@@ -4,7 +4,7 @@ import { mainRouter } from "./routes/mainRouter";
 declare global {
   namespace Express {
     interface Request {
-      userId: String
+      userId: string
     }
   }
 }
