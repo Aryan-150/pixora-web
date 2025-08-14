@@ -39,7 +39,7 @@ model UsersOnRooms {
   @@id([userId, roomId])
 }
 
-model Stroke{
+model Stroke {
   id          String          @id @default(uuid())
   sequenceNo  Int             @default(autoincrement())
   message     String

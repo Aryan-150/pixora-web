@@ -89,9 +89,9 @@ userRouter.post("/signin", async (req, res) => {
       msg: "signin completed...!",
       token: userJwtToken
     })
-  } catch (error) {
-    res.status(500).json({
-      msg: error
+  } catch (error: any) {
+    res.status(411).json({
+      msg: error.message
     })
   }
 })
@@ -135,7 +135,7 @@ userRouter.post("/create-room", userMiddleware, async (req, res) => {
   }
 })
 
-userRouter.post("join-room", userMiddleware, async (req, res) => {
+userRouter.post("/join-room", userMiddleware, async (req, res) => {
   const userId = req.userId;
   const { success, error } = RoomSchema.safeParse(req.body);
   if(!success){
@@ -187,11 +187,15 @@ userRouter.post("join-room", userMiddleware, async (req, res) => {
       usersInRoom: usersInRoom
     })
     
-  } catch (error) {
+  } catch (error: any) {
     res.status(411).json({
-      msg: error
+      msg: error.message
     })
   }
 
 })
 
+// TODO
+userRouter.delete("leave-room", async (req,res) => {
+
+})
