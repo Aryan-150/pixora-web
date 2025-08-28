@@ -35,7 +35,7 @@ userRouter.post("/signup", async (req, res) => {
     });
 
     if (existingUsername || existingEmail) {
-      return res.status(400).json({
+      res.status(400).json({
         msg: existingUsername ? "Username already taken" : "Email already registered"
       });
     }
@@ -124,21 +124,20 @@ userRouter.post("/create-room", userMiddleware, async (req, res) => {
 
     res.json({
       msg: "room created ...!",
-      roomName: response.roomName,
-      roomId: response.id
+      roomName: response.roomName
     })
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(411).json({
-      msg: error
+      msg: error.message
     })
   }
 })
 
-userRouter.post("/join-room", userMiddleware, async (req, res) => {
+userRouter.delete("/delete-room", userMiddleware, async(req, res) => {
   const userId = req.userId;
   const { success, error } = RoomSchema.safeParse(req.body);
-  if(!success){
+  if (!success) {
     res.status(411).json({
       msg: error.message
     })
@@ -149,53 +148,27 @@ userRouter.post("/join-room", userMiddleware, async (req, res) => {
     const { roomName } = req.body;
     const existRoom = await prisma.room.findUnique({
       where: {
-        roomName: roomName
+        roomName: roomName,
+        adminId: userId
       }
     })
-    if(!existRoom) throw new Error("Invalid room name, try a valid one ...!");
-
-    const roomId = existRoom.id;
-    await prisma.usersOnRooms.create({
-      data: {
-        userId: userId,
-        roomId: roomId
-      }
-    })
-
-    const usersInRoom = await prisma.room.findMany({
+    if(!existRoom) throw new Error("roomName with the given userId doesn't exists...!");
+    
+    await prisma.room.delete({
       where: {
-        id: roomId
-      },
-      select: {
-        roomName: true,
-        adminId: true,
-        users: {
-          select: {
-            user: {
-              select: {
-                username: true,
-                avatar: true
-              }
-            }
-          }
-        }
+        id: existRoom.id,
+        roomName: roomName,
+        adminId: userId
       }
     })
 
     res.json({
-      msg: "joined the room successfully ...!",
-      usersInRoom: usersInRoom
+      msg: `room ${roomName} deleted...!`
     })
-    
+
   } catch (error: any) {
     res.status(411).json({
       msg: error.message
     })
   }
-
-})
-
-// TODO
-userRouter.delete("leave-room", async (req,res) => {
-
 })

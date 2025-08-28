@@ -15,7 +15,7 @@ model User {
   password    String
   avatar      String?
   rooms       UsersOnRooms[]
-  roomAdmin   Room?
+  roomAdmin   Room[]
   strokes     Stroke[]
   createdAt   DateTime        @default(now())
 }
@@ -24,7 +24,7 @@ model Room {
   id          String          @id @default(uuid())
   roomName    String          @unique
   users       UsersOnRooms[]
-  adminId     String          @unique
+  adminId     String
   admin       User            @relation(fields: [adminId], references: [id])
   strokes     Stroke[]
   createdAt   DateTime        @default(now())

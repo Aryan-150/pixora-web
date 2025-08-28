@@ -3,6 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "start": "bun run ./src/index.ts",
+    "dev": "bun run start"
+  },
   "devDependencies": {
     "@repo/typescript-config": "*",
     "@types/bun": "latest",
@@ -13,8 +17,10 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@repo/common": "*",
+    "@repo/database": "*",
     "jsonwebtoken": "^9.0.2",
-    "ws": "^8.18.3",
-    "@repo/common": "*"
+    "redis": "^5.8.2",
+    "ws": "^8.18.3"
   }
 }
