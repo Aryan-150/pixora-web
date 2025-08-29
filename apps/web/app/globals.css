@@ -1,22 +1,24 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap'); */
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
 @import "tailwindcss";
 
 @theme {
   /* --font-manrope: "Manrope", sans-serif; */
 
   --font-inter: "Inter", sans-serif;
+  --font-monoton: "Monoton", sans-serif;
   
   --color-background-black: #18181B;
-  --color-pixora-50: #f0fdfa;
-  --color-pixora-100: #cdfaef;
-  --color-pixora-200: #9cf3df;
-  --color-pixora-300: #62e6cd;
-  --color-pixora-400: #32cfb6;
-  --color-pixora-500: #19b39d;
-  --color-pixora-600: #108577;
-  --color-pixora-700: #127368;
-  --color-pixora-800: #135c55;
-  --color-pixora-900: #154c46;
-  --color-pixora-950: #052e2c;
+  --color-pixora-50: #e4efff;
+  --color-pixora-100: #cfe0ff;
+  --color-pixora-200: #a8c4ff;
+  --color-pixora-300: #749dff;
+  --color-pixora-400: #3e61ff;
+  --color-pixora-500: #1328ff;
+  --color-pixora-600: #0010ff;
+  --color-pixora-700: #0018ff;
+  --color-pixora-800: #000ee4;
+  --color-pixora-900: #0005b0;
+  --color-pixora-950: #00001e;
 }

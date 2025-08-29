@@ -27,7 +27,6 @@ export default function RootLayout({
       <body className={cn(
         `${geistSans.variable} ${geistMono.variable}`,
         "font-[var(--font-inter)]",
-        "w-screen h-screen bg-gradient-to-b from-background-black from-0% via-background-black via-25% to-pixora-950 to-95%"
       )}>
         {children}
       </body>
