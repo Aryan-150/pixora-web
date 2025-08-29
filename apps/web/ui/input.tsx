@@ -23,6 +23,7 @@ interface InputProps extends
   type: "text" | "email" | "password";
   placeholder: string;
   name: string;
+  onChange?: () => void;
 }
 
 export default function Input({
@@ -31,6 +32,7 @@ export default function Input({
   type,
   placeholder,
   name,
+  onChange,
   className,
   ...props
 }: InputProps) {
@@ -44,6 +46,7 @@ export default function Input({
           inputStyles({intent, size}),
           className
         )}
+        onChange={onChange}
         {...props}
       />
     </div>
