@@ -1,11 +1,39 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { Point, Rect } from "../../draw/types";
+import { Point, Rect } from "@draw/types";
+import { WS_URL } from "@repo/common/config";
+import { useCookiesNext } from "cookies-next";
+import { MessageCommand, ParsedMessageType } from "ws-backend/types";
 
 export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const startRef = useRef<Point>({x: 0, y: 0});
+  const startRef = useRef<Point>({ x: 0, y: 0 });
   const existingShapes: Rect[] = [];
+  const { getCookie } = useCookiesNext();
+
+  useEffect(() => {
+    // connect to the ws:
+    const ws = new WebSocket(WS_URL, getCookie("token"));
+    ws.onopen = async () => {
+      console.log('connection with ws established...!');
+      const roomId = getCookie("roomId");
+      if (!roomId) throw new Error("unautharized room access ...!");
+
+      const joinRoomMsgObj: ParsedMessageType = {
+        type: MessageCommand.joinRoom,
+        roomId: roomId
+      }
+      ws.send(JSON.stringify(joinRoomMsgObj));
+
+      ws.onmessage = (ev: MessageEvent) => {
+        const message = ev.data;
+        console.log(message, typeof message);
+      }
+    }
+
+    // render the old messages:
+
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current;

@@ -31,8 +31,8 @@ roomRouter.get("/chats/:roomId", userMiddleware, async(req,res) => {
   }
 })
 
-roomRouter.get("/:slug", userMiddleware, async(req, res) => {
-  const { success, error } = RoomSchema.safeParse(req.params.slug);
+roomRouter.get("/:roomName", userMiddleware, async(req, res) => {
+  const { success, error } = RoomSchema.safeParse(req.params);
   if(!success){
     res.status(411).json({
       msg: error.message
@@ -41,24 +41,22 @@ roomRouter.get("/:slug", userMiddleware, async(req, res) => {
   }
 
   try {
-    const slug = req.params.slug;
+    const roomName = req.params.roomName;
     // extract the roomId considering slug as roomName:
-    const roomId = await prisma.room.findUnique({
+    const existRoom = await prisma.room.findUnique({
       where: {
-        roomName: slug
-      },
-      select: {
-        id: true
+        roomName: roomName
       }
     })
-
+    if(!existRoom) throw new Error("room doesn't exists...!");
+    const roomId = existRoom.id;
     res.json({
       roomId: roomId
     })
     
   } catch (error: any) {
     res.status(411).json({
-      msg: error.toString()
+      msg: error.message
     })
   }
 })

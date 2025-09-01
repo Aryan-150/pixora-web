@@ -16,7 +16,7 @@ export default function ({
         <a href="/"><span className="font-monoton">Pixora</span></a>
       </div>
       <div className={cn(
-        "max-w-full mx-5 h-10/12 my-5 mt-5 px-10 py-1.5 shadow-md/60 rounded-3xl shadow-pixora-200",
+        "max-w-full mx-5 h-10/12 my-5 mt-5 px-10 py-1.5 shadow-xl/50 rounded-3xl shadow-pixora-200",
         "bg-gradient-to-b from-pixora-50/50 from-45% to-pixora-100/75 to-90%",
         "flex justify-center items-center"
       )}>

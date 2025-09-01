@@ -5,6 +5,7 @@
   "private": true,
   "exports": {
     ".": "./index.ts",
+    "./config": "./config.ts",
     "./authschema": "./zodSchemas/auth.ts",
     "./roomschema": "./zodSchemas/room.ts",
     "./cn": "./utils/cn.ts",

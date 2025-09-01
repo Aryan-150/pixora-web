@@ -33,8 +33,8 @@ function tokenValidator(token: string): TokenValidatorReturnType {
 
 wss.on("connection", async (ws, request) => {
   try {
-    const token = request.headers.authorization;
-    if(!token)  throw new Error("auth header not received...!");
+    const token = request.headers["sec-websocket-protocol"];
+    if(!token)  throw new Error("auth protocol not received...!");
 
     const { success, data, error } = tokenValidator(token);
     if(!success){
@@ -43,6 +43,7 @@ wss.on("connection", async (ws, request) => {
     if(!data) throw new Error("userId not found...!");
 
     const userId = data;
+    console.log(userId);
     const roomManager = RoomManager.getInstance();
     ws.on("message", (data) => {
       const message = data.toString();

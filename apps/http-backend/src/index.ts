@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { mainRouter } from "./routes/mainRouter";
 
 declare global {
@@ -12,7 +13,7 @@ declare global {
 const app = express();
 const PORT = 8080;
 
-
+app.use(cors());
 app.use(express.json());
 app.use("/api/v1", mainRouter);
 

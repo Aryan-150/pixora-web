@@ -1,6 +1,7 @@
-import SignInCard from "../../../ui/components/signin";
+import SignInCard from "@ui/components/signin";
 
 export default function SignIn() {
+  
   return (
     <SignInCard />
   )

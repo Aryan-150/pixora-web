@@ -8,18 +8,20 @@
     "dev": "bun run start"
   },
   "devDependencies": {
+    "@repo/typescript-config": "*",
     "@types/bun": "latest",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@repo/typescript-config": "*"
+    "@types/jsonwebtoken": "^9.0.10"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
+    "@repo/common": "*",
     "@repo/database": "*",
-    "@repo/common": "*"
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2"
   }
 }
