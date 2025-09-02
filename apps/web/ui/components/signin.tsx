@@ -1,6 +1,6 @@
 "use client";
 
-import { HTTP_URL } from "@repo/common/config";
+import { HTTP_URL } from "@repo/common";
 import AuthComponent from "@ui/authComponent";
 import Button from "@ui/button";
 import Input from "@ui/input";

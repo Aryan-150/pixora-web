@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { Point, Rect } from "@draw/types";
-import { WS_URL } from "@repo/common/config";
+import { WS_URL } from "@repo/common";
 import { useCookiesNext } from "cookies-next";
 import { MessageCommand, ParsedMessageType } from "ws-backend/types";
 

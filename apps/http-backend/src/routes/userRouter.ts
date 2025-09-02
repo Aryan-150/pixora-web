@@ -8,6 +8,7 @@ import userMiddleware from "../middlewares/userMiddleware";
 
 export const userRouter = Router();
 
+
 userRouter.post("/signup", async (req, res) => {
   const { success, error } = signupSchema.safeParse(req.body);
   if (!success) {
