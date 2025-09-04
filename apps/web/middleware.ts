@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export default function Middleware(request: NextRequest) {
   console.log("middleware called ..!");
-  console.log(request.nextUrl);
-  
   try {
     if(!request.cookies.has("token")){
       throw new Error("Access denied ...!");
@@ -19,7 +17,7 @@ export default function Middleware(request: NextRequest) {
         if(!roomIdFromCookie) throw new Error("cookie access error...!");
         const match = roomId == roomIdFromCookie.value;
         if(!match) throw new Error("give roomId doesn't match with the cookie...!");
-        // more checks needed, and also may be a better way:
+        // more checks needed, and also may be a better ones:
         
       }
     }
