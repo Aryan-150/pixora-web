@@ -44,6 +44,7 @@ wss.on("connection", async (ws, request) => {
 
     const userId = data;
     console.log(userId);
+    
     const roomManager = RoomManager.getInstance();
     ws.on("message", (data) => {
       const message = data.toString();
@@ -66,8 +67,9 @@ wss.on("connection", async (ws, request) => {
     })
     
   } catch (error: any) {
-    console.error(error.toString());
+    console.error(error.message);
     ws.close();
+    console.error("connection closed...!");
     return;
   }
 })

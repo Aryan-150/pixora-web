@@ -1,14 +1,14 @@
 "use client";
 
-import { HTTP_URL } from "@repo/common";
+import { HTTP_URL } from "@repo/common/config";
 import AuthComponent from "@ui/authComponent";
 import Button from "@ui/button";
 import Input from "@ui/input";
 import InputWithErrorMsg from "@ui/inputWithErrorMsg";
+import setCookie from "actions/cookies";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { useCookiesNext } from "cookies-next/client";
 
 type ResponseDataType = {
   msg: string;
@@ -19,8 +19,6 @@ export default function SignInCard() {
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
   const [signInError, setSignInError] = useState("");
-
-  const { setCookie } = useCookiesNext();
   const router = useRouter();
 
   const signIn = async () => {
@@ -45,7 +43,7 @@ export default function SignInCard() {
       if(!data.token){
         throw new Error("token not found");
       }
-      setCookie("token", data.token);
+      await setCookie("token",data.token);
       router.push("/canvas");
 
     } catch (error: any) {

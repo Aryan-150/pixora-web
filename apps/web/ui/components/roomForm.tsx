@@ -1,17 +1,18 @@
 "use client";
 
-import { HTTP_URL } from "@repo/common";
+import { HTTP_URL } from "@repo/common/config";
 import { cn } from "@repo/common/cn";
 import Button from "@ui/button";
 import Input from "@ui/input";
 import axios from "axios";
 import { useRef } from "react";
-import { useCookiesNext } from "cookies-next/client";
 import { useRouter } from "next/navigation";
+import { getClientSideCookie } from "@lib/getCookie";
+import setCookie from "actions/cookies";
+
 
 export default function RoomForm() {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const { setCookie, getCookie } = useCookiesNext();
   const router = useRouter();
 
   const joinRoom = async () => {
@@ -22,15 +23,15 @@ export default function RoomForm() {
     }
     
     try {
-      const token = getCookie("token");
+      const token = getClientSideCookie("token");
       const response = await axios.get(`${HTTP_URL}/api/v1/room/${inputRef.current.value}`, {
         headers: {
           Authorization: token
         }
       });
-      const data = response.data;      
-      setCookie("roomId", data.roomId);
-      router.push(`/canvas/${getCookie("roomId")}`);
+      const data = response.data;
+      await setCookie("roomId",data.roomId);
+      router.push(`/canvas/${getClientSideCookie("roomId")}`);
       
     } catch (error: any) {
       console.error(error.message);

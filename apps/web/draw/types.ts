@@ -9,6 +9,13 @@ export type Rect = {
   w: number;
   h: number;
 };
+export type Circle = {
+  cx: number;
+  cy: number;
+  rad: number;
+}
+
+export type Shapes = Line | Rect | Circle;
 
 export const defaultRect: Rect = {
   x: 0,

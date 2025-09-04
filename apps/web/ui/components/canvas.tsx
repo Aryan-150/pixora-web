@@ -1,38 +1,57 @@
 "use client";
-import { useEffect, useRef } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import { Point, Rect } from "@draw/types";
-import { WS_URL } from "@repo/common";
-import { useCookiesNext } from "cookies-next";
+import { HTTP_URL, WS_URL } from "@repo/common/config";
 import { MessageCommand, ParsedMessageType } from "ws-backend/types";
+import axios from "axios";
+import { getClientSideCookie } from "@lib/getCookie";
+import { useRouter } from "next/navigation";
 
 export default function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const startRef = useRef<Point>({ x: 0, y: 0 });
+  const [socket, setSocket] = useState<WebSocket>();
   const existingShapes: Rect[] = [];
-  const { getCookie } = useCookiesNext();
+  const router = useRouter();
 
+  // connect to the ws:
   useEffect(() => {
-    // connect to the ws:
-    const ws = new WebSocket(WS_URL, getCookie("token"));
+    const token = getClientSideCookie("token");
+    const ws = new WebSocket(WS_URL, token);
+
     ws.onopen = async () => {
-      console.log('connection with ws established...!');
-      const roomId = getCookie("roomId");
-      if (!roomId) throw new Error("unautharized room access ...!");
+      try {
+        console.log('connection with ws established...!');
+        setSocket(ws);
 
-      const joinRoomMsgObj: ParsedMessageType = {
-        type: MessageCommand.joinRoom,
-        roomId: roomId
-      }
-      ws.send(JSON.stringify(joinRoomMsgObj));
+        const roomId = getClientSideCookie("roomId");
+        if (!roomId) throw new Error("unautharized room access ...!");
+        const resposne = await axios.get(`${HTTP_URL}/api/v1/room/chats/${roomId}`, {
+          headers: {
+            Authorization: token
+          }
+        });
+        const messages = resposne.data.messages;
+        console.log(messages, typeof (messages));
 
-      ws.onmessage = (ev: MessageEvent) => {
-        const message = ev.data;
-        console.log(message, typeof message);
+        const joinRoomMsgObj: ParsedMessageType = {
+          type: MessageCommand.joinRoom,
+          roomId: roomId
+        }
+        ws.send(JSON.stringify(joinRoomMsgObj));
+
+        ws.onmessage = (ev: MessageEvent) => {
+          const message = ev.data;
+          console.log(message, typeof message);
+        }
+
+      } catch (error: any) {
+        console.error(error.message);
+        ws.close();
+        router.push("/canvas");
       }
     }
-
-    // render the old messages:
-
   }, [])
 
   useEffect(() => {
@@ -44,20 +63,23 @@ export default function Canvas() {
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    window.onresize = () => {
+    window.onresize = (e: UIEvent) => {
+      e.preventDefault();
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       clearCanvas(canvas, ctx, existingShapes);
     }
 
     let clicked = false;
-    canvas.addEventListener("mousedown", (e) => {
+    canvas.addEventListener("mousedown", (e: MouseEvent) => {
+      e.preventDefault();
       clicked = true;
       startRef.current.x = e.clientX;
       startRef.current.y = e.clientY;
     })
 
-    canvas.addEventListener("mousemove", (e) => {
+    canvas.addEventListener("mousemove", (e: MouseEvent) => {
+      e.preventDefault();
       if (!clicked) return;
 
       const width = e.clientX - startRef.current.x;
@@ -68,10 +90,12 @@ export default function Canvas() {
       ctx.strokeRect(startRef.current.x, startRef.current.y, width, height);
     })
 
-    canvas.addEventListener("mouseup", (e) => {
+    canvas.addEventListener("mouseup", (e: MouseEvent) => {
+      e.preventDefault();
       clicked = false;
       const width = e.clientX - startRef.current.x;
       const height = e.clientY - startRef.current.y;
+      // addShape call -> socket, roomId, shape
       existingShapes.push({
         x: startRef.current.x,
         y: startRef.current.y,

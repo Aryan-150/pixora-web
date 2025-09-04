@@ -10,25 +10,32 @@ export async function main() {
   try {
     await client.connect();
     console.log("Worker connected to Redis.");
-    while(true){
+    while (true) {
       try {
         const response = await client.brPop(REDIS_ARG, 0);
-        if(!response) throw new Error("");
-        
+        if (!response) throw new Error("brpop await failed...!");
+
         const data: RedisInput = JSON.parse(response.element);
+        console.log(data);
+
         switch (data.type) {
           case MessageCommand.joinRoom:
-            await prisma.usersOnRooms.create({
-              data: {
-                userId: data.userId,
-                roomId: data.roomId
-              }
-            })
-            console.log("user gets placed in db...!");
+            try {
+              await prisma.usersOnRooms.create({
+                data: {
+                  userId: data.userId,
+                  roomId: data.roomId
+                }
+              })
+              console.log("user gets placed in db...!");
+              
+            } catch (error: any) {
+              console.error(error.message);
+            }
             break;
 
           case MessageCommand.chat:
-            if(!data.message) throw new Error("message not reaceived correctly...!");
+            if (!data.message) throw new Error("message not reaceived correctly...!");
             await prisma.stroke.create({
               data: {
                 message: data.message,
@@ -50,16 +57,16 @@ export async function main() {
             })
             console.log("user removed form the room in the db...!")
             break;
-        
+
           default:
             console.log("default case")
             break;
         }
       } catch (error: any) {
-        console.error(error.toString());
+        console.error(error.message);
       }
     }
   } catch (error: any) {
-    console.error(error.toString());
+    console.error(error.message);
   }
 }

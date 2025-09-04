@@ -39,11 +39,10 @@ export class RoomManager {
         }
       }
       // if user already in the room:
-      if(this.rooms[roomId].sockets.includes({
-        userId: userId,
-        socket: socket
-      })){
-        throw new Error("user already present in the room...!");
+      const user = this.rooms[roomId].sockets.find((user) => user.userId === userId);
+      if(user){
+        user.socket = socket;
+        throw new Error("user already exists, updated the socket instance only...!");
       }
 
       // push it to the in-memory attribute:
@@ -51,6 +50,7 @@ export class RoomManager {
         userId: userId,
         socket: socket
       })
+      console.log(this.rooms[roomId]);
 
       // push it to the redis queue:
       await this.redisClient.lPush(REDIS_ARG, JSON.stringify({
@@ -59,8 +59,9 @@ export class RoomManager {
         roomId: roomId
       }));
 
-    } catch (error) {
-      console.log('error while joining the room...!');
+    } catch (error: any) {
+      console.log(error.message);
+      console.log(this.rooms[roomId]);
     }
   }
 
