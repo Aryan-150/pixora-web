@@ -15,7 +15,7 @@ export type Circle = {
   rad: number;
 }
 
-export type Shapes = Line | Rect | Circle;
+export type Shapes = Rect;
 
 export const defaultRect: Rect = {
   x: 0,

@@ -1,12 +1,29 @@
+import { HTTP_URL_V1 } from "@repo/common/config";
+import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
-export default function Middleware(request: NextRequest) {
+export default async function Middleware(request: NextRequest) {
   console.log("middleware called ..!");
   try {
     if(!request.cookies.has("token")){
       throw new Error("Access denied ...!");
     }
     if(request.nextUrl.pathname.startsWith("/canvas")){
+      console.log("control reacted here...!");
+      
+      const token = request.cookies.get("token");
+      if(!token) throw new Error("token not found...!");
+      console.log(token);
+      
+      // const response = await axios.get(`${HTTP_URL_V1}/user/decode-jwt`, {
+      //   headers: {
+      //     Authorization: token.value
+      //   }
+      // })
+      // const data = response.data;
+      // console.log(data);
+      
+      // request.cookies.set("userId", data.userId);
       const segments = request.nextUrl.pathname.split("/");
       if(segments.length === 3){
         const roomId = segments[2];

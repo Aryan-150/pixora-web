@@ -135,6 +135,13 @@ userRouter.post("/create-room", userMiddleware, async (req, res) => {
   }
 })
 
+userRouter.get("/decode-jwt", userMiddleware, (req,res) => {
+  const userId = req.userId;
+  res.json({
+    userId: userId
+  })
+})
+
 userRouter.delete("/delete-room", userMiddleware, async(req, res) => {
   const userId = req.userId;
   const { success, error } = RoomSchema.safeParse(req.body);
