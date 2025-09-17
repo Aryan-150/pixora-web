@@ -80,6 +80,7 @@ export class RoomManager {
       this.rooms[roomId].sockets.forEach((s) => {
         s.socket.send(message);
       })
+      console.log("message was sent");
 
     } catch (error: any) {
       console.error(error.toString());

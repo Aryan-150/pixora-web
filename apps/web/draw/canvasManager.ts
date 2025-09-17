@@ -1,8 +1,7 @@
-import { HTTP_URL_V1, WS_URL } from "@repo/common/config";
+import { HTTP_URL_V1 } from "@repo/common/config";
 import axios from "axios";
-import { Rect, Shapes } from "./types";
+import { Point, Rect, Shapes } from "./types";
 import { getClientSideCookie } from "@lib/getCookie";
-// import { prisma } from "@repo/database/client";
 import { MessageCommand, ParsedMessageType } from "ws-backend/types";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
@@ -15,42 +14,94 @@ export class CanvasManager {
   private socket: WebSocket;
   private router: AppRouterInstance;
 
-  constructor(canvas: HTMLCanvasElement, roomId: string, token: string, router: AppRouterInstance) {
+  private clicked: boolean;
+  private start: Point;
+
+  constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket, router: AppRouterInstance) {
+    console.log('constructor gets called...!');
+
     this.shapesInRoom = [];
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
     this.roomId = roomId;
+    const token = getClientSideCookie("token");
     this.token = token;
+    this.socket = socket;
     this.router = router;
-    this.socket = this.connectWs();
+
+    this.clicked = false;
+    this.start = { x: 0, y: 0 };
     this.init();
+    this.handleWs();
     this.getExistingShapes();
   }
 
-  private connectWs() {
-    const ws = new WebSocket(WS_URL, this.token);
+  public addEventListeners() {
+    this.canvas.addEventListener("mousedown", this.mouseDownHandler);
+    this.canvas.addEventListener("mouseup", this.mouseUpHanbler);
+    this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
+  }
 
-    ws.onopen = async () => {
+  mouseDownHandler(e: MouseEvent) {
+    e.preventDefault();
+    this.clicked = true;
+    console.log(this.clicked);
+
+    this.start.x = e.clientX;
+    this.start.y = e.clientY;
+  }
+
+  mouseUpHanbler(e: MouseEvent) {
+    e.preventDefault();
+    this.clicked = false;
+    const width = e.clientX - this.start.x;
+    const height = e.clientY - this.start.y;
+    const shape: Shapes = {
+      type: "rect",
+      startX: this.start.x,
+      startY: this.start.y,
+      width: width,
+      height: height
+    }
+    this.addShape(shape);
+  }
+
+  mouseMoveHandler(e: MouseEvent) {
+    e.preventDefault();
+    console.log(this.clicked);
+
+    if (!this.clicked) return;
+    const width = e.clientX - this.start.x;
+    const height = e.clientY - this.start.y;
+    this.ctx.strokeStyle = "#FFFFFF";
+    this.ctx.lineWidth = 2;
+    this.clearCanvas();
+    this.ctx.strokeRect(this.start.x, this.start.y, width, height);
+  }
+
+  public cleanUp() {
+    this.canvas.removeEventListener("mousedown", this.mouseDownHandler);
+    this.canvas.removeEventListener("mouseup", this.mouseUpHanbler);
+    this.canvas.removeEventListener("mousemove", this.mouseMoveHandler);
+  }
+
+  private handleWs() {
+    this.socket.onopen = async (e) => {
+      e.preventDefault();
       try {
         console.log('connection with ws established...!');
-
-        const roomId = getClientSideCookie("roomId");
-        if (!roomId) throw new Error("unautharized room access ...!");
-        const resposne = await axios.get(`${HTTP_URL_V1}/room/chats/${roomId}`, {
-          headers: {
-            Authorization: this.token
-          }
-        });
-        const messages = resposne.data.messages;
-        console.log(messages, typeof (messages));
-
         const joinRoomMsgObj: ParsedMessageType = {
           type: MessageCommand.joinRoom,
-          roomId: roomId
+          roomId: this.roomId
         }
-        ws.send(JSON.stringify(joinRoomMsgObj));
+        this.socket.send(JSON.stringify(joinRoomMsgObj));
+        console.log("joined the room");
 
-        ws.onmessage = (ev: MessageEvent) => {
+
+        this.socket.onmessage = (ev: MessageEvent) => {
+          ev.preventDefault();
+          console.log("message received");
+
           const message = ev.data;
           console.log(message, typeof message);
           // handle the broadcast:
@@ -63,11 +114,10 @@ export class CanvasManager {
 
       } catch (error: any) {
         console.error(error.message);
-        ws.close();
+        this.socket.close();
         this.router.push("/canvas");
       }
     }
-    return ws;
   }
 
   public init() {
@@ -93,9 +143,7 @@ export class CanvasManager {
       const shapes = messages.map((msg: any) => {
         return JSON.parse(msg.message)
       })
-      console.log(shapes);
-      
-      //
+
       this.shapesInRoom = [...this.shapesInRoom, ...shapes];
       console.log(this.shapesInRoom);
       this.clearCanvas();
@@ -108,27 +156,13 @@ export class CanvasManager {
 
   public async addShape(shape: Shapes) {
     try {
-      // push it to the in-memory state:
-      // this.shapesInRoom.push(shape);
-      // console.log(this.shapesInRoom);
-      // this.clearCanvas();
-      // send to the ws be:
       this.socket?.send(JSON.stringify({
         "type": "chat",
         "roomId": this.roomId,
         "message": JSON.stringify(shape)
       }))
+      console.log("shape is being sent");
 
-      // not optimal, only for testing:
-      // const userId = getClientSideCookie("userId");
-      // if (!userId) throw new Error("userId cookie not found...!");
-      // await prisma.stroke.create({
-      //   data: {
-      //     message: JSON.stringify(shape),
-      //     userId: userId,
-      //     roomId: this.roomId
-      //   }
-      // })
 
       //TODO: push it to the redis queue, in-order to persist the db:
 
@@ -141,9 +175,18 @@ export class CanvasManager {
     try {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.shapesInRoom.map((shape) => {
-        this.ctx.strokeStyle = "#FFFFFF";
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(shape.x, shape.y, shape.w, shape.h);
+        if (shape.type == "rect") {
+          this.ctx.strokeStyle = "#FFFFFF";
+          this.ctx.lineWidth = 2;
+          this.ctx.strokeRect(shape.startX!, shape.startY!, shape.width!, shape.height!);
+        }
+        else if (shape.type == "circle") {
+          this.ctx.beginPath();
+          this.ctx.arc(shape.centreX!, shape.centreY!, shape.radius!, 0, 2 * Math.PI, false);
+          this.ctx.strokeStyle = "#FFFFFF";
+          this.ctx.lineWidth = 2;
+          this.ctx.stroke();
+        }
       })
 
     } catch (error: any) {
