@@ -35,14 +35,30 @@ export async function main() {
             break;
 
           case MessageCommand.chat:
-            if (!data.message) throw new Error("message not reaceived correctly...!");
-            await prisma.stroke.create({
-              data: {
-                message: data.message,
-                userId: data.userId,
-                roomId: data.roomId
-              }
-            })
+            if (!data.message) throw new Error("message not received correctly...!");
+            const shape = JSON.parse(data.message);
+            switch (shape.type) {
+              case "rect":
+                await prisma.stroke.create({
+                  data: {
+                    type: "rect",
+                    rect: {
+                      create: {
+                        startX: shape.startX,
+                        startY: shape.startY,
+                        width: shape.width,
+                        height: shape.height
+                      }
+                    },
+                    userId: data.userId,
+                    roomId: data.roomId
+                  }
+                })
+                break;
+            
+              default:
+                break;
+            }
             console.log("msg propagated to db...!");
             break;
 

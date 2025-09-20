@@ -1,7 +1,13 @@
-import Canvas from "@ui/components/canvas";
+import RoomCanvas from "@ui/components/roomCanvas";
 
-export default function CanvasPage() {
+export default async function CanvasPage({
+  params
+}: {
+  params: Promise<{ roomId: string }>
+}) {
+  const { roomId } = await params;
+
   return (
-    <Canvas />
+    <RoomCanvas roomId={roomId} />
   )
 }

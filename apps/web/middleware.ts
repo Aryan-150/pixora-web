@@ -9,11 +9,8 @@ export default async function Middleware(request: NextRequest) {
       throw new Error("Access denied ...!");
     }
     if(request.nextUrl.pathname.startsWith("/canvas")){
-      console.log("control reacted here...!");
-      
       const token = request.cookies.get("token");
       if(!token) throw new Error("token not found...!");
-      console.log(token);
       
       // const response = await axios.get(`${HTTP_URL_V1}/user/decode-jwt`, {
       //   headers: {

@@ -42,13 +42,26 @@ model UsersOnRooms {
 model Stroke {
   id          String          @id @default(uuid())
   sequenceNo  Int             @default(autoincrement())
-  message     String
   color       Color?          @default(white)
+  type        StrokeType      // discriminator
+
+  rect        Rect?           // 1-1 relation
+
   userId      String
   user        User            @relation(fields: [userId], references: [id])
   roomId      String
   room        Room            @relation(fields: [roomId], references: [id])
   createdAt   DateTime        @default(now())
+}
+
+model Rect {
+  id          String          @id @default(uuid())
+  startX      Float
+  startY      Float
+  width       Float
+  height      Float
+  strokeId    String          @unique
+  stroke      Stroke          @relation(fields: [strokeId], references: [id])
 }
 
 enum Color {
@@ -57,4 +70,8 @@ enum Color {
   blue
   white
   black
+}
+
+enum StrokeType {
+  rect
 }
