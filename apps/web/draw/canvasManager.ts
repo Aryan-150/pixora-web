@@ -40,7 +40,7 @@ export class CanvasManager {
 
   public addEventListeners() {
     this.canvas.addEventListener("mousedown", this.mouseDownHandler);
-    this.canvas.addEventListener("mouseup", this.mouseUpHanbler);
+    this.canvas.addEventListener("mouseup", this.mouseUpHandler);
     this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
   }
 
@@ -56,7 +56,7 @@ export class CanvasManager {
     
   }
 
-  mouseUpHanbler = (e: MouseEvent) => {
+  mouseUpHandler = (e: MouseEvent) => {
     e.preventDefault();
     this.clicked = false;
     const width = e.clientX - this.start.x;
@@ -84,7 +84,7 @@ export class CanvasManager {
 
   public cleanUp() {
     this.canvas.removeEventListener("mousedown", this.mouseDownHandler);
-    this.canvas.removeEventListener("mouseup", this.mouseUpHanbler);
+    this.canvas.removeEventListener("mouseup", this.mouseUpHandler);
     this.canvas.removeEventListener("mousemove", this.mouseMoveHandler);
   }
 
@@ -178,14 +178,24 @@ export class CanvasManager {
         if (shape.type == "rect") {
           this.ctx.strokeStyle = "#FFFFFF";
           this.ctx.lineWidth = 2;
-          this.ctx.strokeRect(shape.startX!, shape.startY!, shape.width!, shape.height!);
+          if( shape.startX !== undefined && 
+              shape.startY !== undefined && 
+              shape.width !== undefined &&
+              shape.height !== undefined){
+                this.ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
+              }
         }
         else if (shape.type == "circle") {
-          this.ctx.beginPath();
-          this.ctx.arc(shape.centreX!, shape.centreY!, shape.radius!, 0, 2 * Math.PI, false);
-          this.ctx.strokeStyle = "#FFFFFF";
-          this.ctx.lineWidth = 2;
-          this.ctx.stroke();
+          if( shape.centreX !== undefined &&
+              shape.centreY !== undefined &&
+              shape.radius !== undefined
+            ) {
+              this.ctx.beginPath();
+              this.ctx.arc(shape.centreX, shape.centreY, shape.radius, 0, 2 * Math.PI, false);
+              this.ctx.strokeStyle = "#FFFFFF";
+              this.ctx.lineWidth = 2;
+              this.ctx.stroke();
+            }
         }
       })
 
