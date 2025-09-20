@@ -16,6 +16,7 @@ export class CanvasManager {
 
   private clicked: boolean;
   private start: Point;
+  private selectedTool: string;
 
   constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket, router: AppRouterInstance) {
     console.log('constructor gets called...!');
@@ -31,6 +32,7 @@ export class CanvasManager {
 
     this.clicked = false;
     this.start = { x: 0, y: 0 };
+    this.selectedTool = "rect";
     this.init();
     this.handleWs();
     this.getExistingShapes();
@@ -42,16 +44,19 @@ export class CanvasManager {
     this.canvas.addEventListener("mousemove", this.mouseMoveHandler);
   }
 
-  mouseDownHandler(e: MouseEvent) {
+  mouseDownHandler = (e: MouseEvent) => {
     e.preventDefault();
     this.clicked = true;
     console.log(this.clicked);
-
+    console.log(`on mouse down: ${e.clientX} and ${e.clientY}`);
+    
     this.start.x = e.clientX;
     this.start.y = e.clientY;
+    console.log(`on mouse down: start: ${this.start}`);
+    
   }
 
-  mouseUpHanbler(e: MouseEvent) {
+  mouseUpHanbler = (e: MouseEvent) => {
     e.preventDefault();
     this.clicked = false;
     const width = e.clientX - this.start.x;
@@ -66,10 +71,8 @@ export class CanvasManager {
     this.addShape(shape);
   }
 
-  mouseMoveHandler(e: MouseEvent) {
+  mouseMoveHandler = (e: MouseEvent) => {
     e.preventDefault();
-    console.log(this.clicked);
-
     if (!this.clicked) return;
     const width = e.clientX - this.start.x;
     const height = e.clientY - this.start.y;
@@ -162,9 +165,6 @@ export class CanvasManager {
         "message": JSON.stringify(shape)
       }))
       console.log("shape is being sent");
-
-
-      //TODO: push it to the redis queue, in-order to persist the db:
 
     } catch (error: any) {
       console.error(error.message);

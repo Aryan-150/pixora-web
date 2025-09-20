@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Point, Shapes } from "@draw/types";
-import { getClientSideCookie } from "@lib/getCookie";
 import { CanvasManager } from "@draw/canvasManager";
 import { useRouter } from "next/navigation";
 
