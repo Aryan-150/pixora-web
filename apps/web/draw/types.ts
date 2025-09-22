@@ -31,3 +31,12 @@ interface DefaultOptions {
 
 export type Shapes = DefaultOptions;
 
+export enum selectedTooltype {
+  Rect = "rect",
+  Select = "select",
+  Circle = "circle",
+  Line = "line",
+  RightArrow = "rightArrow",
+  Pencil = "pencil",
+  Eraser = "eraser"
+}

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { CanvasManager } from "@draw/canvasManager";
 import { useRouter } from "next/navigation";
+import ToolBar from "./toolBar";
 
 export default function Canvas({
   roomId,
@@ -21,7 +22,6 @@ export default function Canvas({
 
       const canvasManager = new CanvasManager(canvas, roomId, socket, router);
       canvasManager.addEventListeners();
-      
       // cleanup:
       return () => {
         canvasManager.cleanUp();
@@ -34,8 +34,9 @@ export default function Canvas({
   }, [canvasRef])
 
   return (
-    <div className="w-screen h-screen block overflow-hidden">
-      <canvas ref={canvasRef} className="bg-canvas-dark"></canvas>
+    <div className="w-screen h-screen relative overflow-hidden">
+      <ToolBar />
+      <canvas ref={canvasRef} className="bg-canvas-dark z-0"></canvas>
     </div>
   )
 }

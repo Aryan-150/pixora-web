@@ -1,6 +1,6 @@
 import { HTTP_URL_V1 } from "@repo/common/config";
 import axios from "axios";
-import { Point, Rect, Shapes } from "./types";
+import { Point, Rect, selectedTooltype, Shapes } from "./types";
 import { getClientSideCookie } from "@lib/getCookie";
 import { MessageCommand, ParsedMessageType } from "ws-backend/types";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -16,7 +16,7 @@ export class CanvasManager {
 
   private clicked: boolean;
   private start: Point;
-  private selectedTool: string;
+  public selectedTool: selectedTooltype;
 
   constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket, router: AppRouterInstance) {
     console.log('constructor gets called...!');
@@ -32,7 +32,7 @@ export class CanvasManager {
 
     this.clicked = false;
     this.start = { x: 0, y: 0 };
-    this.selectedTool = "rect";
+    this.selectedTool = selectedTooltype.Select;
     this.init();
     this.handleWs();
     this.getExistingShapes();
@@ -144,7 +144,14 @@ export class CanvasManager {
       const messages = response.data.messages;
       console.log(messages, typeof messages);
       const shapes = messages.map((msg: any) => {
-        return JSON.parse(msg.message)
+        let shape: Shapes = {
+          type: msg.type,
+          startX: msg.rect.startX,
+          startY: msg.rect.startY,
+          height: msg.rect.height,
+          width: msg.rect.width
+        }
+        return shape
       })
 
       this.shapesInRoom = [...this.shapesInRoom, ...shapes];

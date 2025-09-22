@@ -21,6 +21,17 @@ export async function main() {
         switch (data.type) {
           case MessageCommand.joinRoom:
             try {
+              const user = await prisma.usersOnRooms.findUnique({
+                where: {
+                  userId_roomId: {
+                    userId: data.userId,
+                    roomId: data.roomId
+                  }
+                }
+              })
+
+              if(user) throw new Error("user already in the room...!");
+              
               await prisma.usersOnRooms.create({
                 data: {
                   userId: data.userId,

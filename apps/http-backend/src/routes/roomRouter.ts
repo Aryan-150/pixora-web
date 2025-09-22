@@ -13,10 +13,10 @@ roomRouter.get("/chats/:roomId", userMiddleware, async(req,res) => {
       where: {
         roomId: roomId
       },
+      include: { rect: true },
       orderBy: {
         sequenceNo: "desc"
-      },
-      take: 50
+      }
     })
 
     res.json({
