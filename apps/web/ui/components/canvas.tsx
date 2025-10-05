@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CanvasManager } from "@draw/canvasManager";
 import { useRouter } from "next/navigation";
 import ToolBar from "./toolBar";
+import { cn } from "@repo/common/cn";
+import { selectedTooltype } from "@draw/types";
 
 export default function Canvas({
   roomId,
@@ -12,6 +14,7 @@ export default function Canvas({
   roomId: string;
   socket: WebSocket;
 }) {
+  const [game, setGame] = useState<CanvasManager | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const router = useRouter();
 
@@ -21,7 +24,7 @@ export default function Canvas({
       if (!canvas || canvas === null) return;
 
       const canvasManager = new CanvasManager(canvas, roomId, socket, router);
-      canvasManager.addEventListeners();
+      setGame(canvasManager);
       // cleanup:
       return () => {
         canvasManager.cleanUp();
@@ -35,8 +38,13 @@ export default function Canvas({
 
   return (
     <div className="w-screen h-screen relative overflow-hidden">
-      <ToolBar />
-      <canvas ref={canvasRef} className="bg-canvas-dark z-0"></canvas>
+      <ToolBar game={game} />
+      <canvas ref={canvasRef} className={cn(
+        "bg-canvas-dark z-0",
+        {
+          "cursor-crosshair" : game?.selectedTool != selectedTooltype.Select
+        }
+      )}></canvas>
     </div>
   )
 }

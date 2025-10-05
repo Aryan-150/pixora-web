@@ -62,7 +62,7 @@ wss.on("connection", async (ws, request) => {
       }
 
       if(parsedMessage.type === MessageCommand.chat){
-        roomManager.sendMessage(parsedMessage.roomId, userId, parsedMessage.message || "");
+        roomManager.sendMessage(parsedMessage.roomId, userId, parsedMessage.message || "", ws);
       }
     })
     
