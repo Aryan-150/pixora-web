@@ -1,6 +1,6 @@
 import { createClient } from "redis";
 import { REDIS_ARG } from "@repo/common/redisArg";
-import { prisma } from "@repo/database/client";
+import { prisma, StrokeType } from "@repo/database/client";
 import { MessageCommand, type RedisInput } from "./types";
 
 export async function main() {
@@ -16,11 +16,21 @@ export async function main() {
         if (!response) throw new Error("brpop await failed...!");
 
         const data: RedisInput = JSON.parse(response.element);
-        console.log(data);
 
         switch (data.type) {
           case MessageCommand.joinRoom:
             try {
+              const user = await prisma.usersOnRooms.findUnique({
+                where: {
+                  userId_roomId: {
+                    userId: data.userId,
+                    roomId: data.roomId
+                  }
+                }
+              })
+
+              if(user) throw new Error("user already in the room...!");
+              
               await prisma.usersOnRooms.create({
                 data: {
                   userId: data.userId,
@@ -38,10 +48,10 @@ export async function main() {
             if (!data.message) throw new Error("message not received correctly...!");
             const shape = JSON.parse(data.message);
             switch (shape.type) {
-              case "rect":
+              case StrokeType.rect:
                 await prisma.stroke.create({
                   data: {
-                    type: "rect",
+                    type: StrokeType.rect,
                     rect: {
                       create: {
                         startX: shape.startX,
@@ -55,11 +65,68 @@ export async function main() {
                   }
                 })
                 break;
-            
+              
+              case StrokeType.line:
+                await prisma.stroke.create({
+                  data: {
+                    type: StrokeType.line,
+                    line: {
+                      create: {
+                        startX: shape.startX,
+                        startY: shape.startY,
+                        endX: shape.endX,
+                        endY: shape.endY
+                      }
+                    },
+                    userId: data.userId,
+                    roomId: data.roomId
+                  }
+                })
+                break;
+              
+              case StrokeType.ellipse:
+                await prisma.stroke.create({
+                  data: {
+                    type: StrokeType.ellipse,
+                    ellipse: {
+                      create: {
+                        centerX: shape.centerX,
+                        centerY: shape.centerY,
+                        radiusX: shape.radiusX,
+                        radiusY: shape.radiusY
+                      }
+                    },
+                    userId: data.userId,
+                    roomId: data.roomId
+                  }
+                })
+                break;
+              
+              case StrokeType.arrow:
+                await prisma.stroke.create({
+                  data: {
+                    type: StrokeType.arrow,
+                    arrow: {
+                      create: {
+                        startX: shape.startX,
+                        startY: shape.startY,
+                        endX: shape.endX,
+                        endY: shape.endY,
+                        dx: shape.dx,
+                        dy: shape.dy,
+                        headlen: shape.headlen,
+                        angle: shape.angle
+                      }
+                    },
+                    userId: data.userId,
+                    roomId: data.roomId
+                  }
+                })
+                break;
+
               default:
                 break;
             }
-            console.log("msg propagated to db...!");
             break;
 
           case MessageCommand.leaveRoom:

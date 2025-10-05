@@ -46,6 +46,9 @@ model Stroke {
   type        StrokeType      // discriminator
 
   rect        Rect?           // 1-1 relation
+  line        Line?           // 1-1 relation
+  ellipse     Ellipse?        // 1-1 relation
+  arrow       Arrow?          // 1-1 relation
 
   userId      String
   user        User            @relation(fields: [userId], references: [id])
@@ -61,7 +64,41 @@ model Rect {
   width       Float
   height      Float
   strokeId    String          @unique
-  stroke      Stroke          @relation(fields: [strokeId], references: [id])
+  stroke      Stroke          @relation(fields: [strokeId], references: [id], onDelete: Cascade)
+}
+
+model Line {
+  id          String          @id @default(uuid())
+  startX      Float
+  startY      Float
+  endX        Float
+  endY        Float
+  strokeId    String          @unique
+  stroke      Stroke          @relation(fields: [strokeId], references: [id], onDelete: Cascade)
+}
+
+model Ellipse {
+  id          String          @id @default(uuid())
+  centerX     Float
+  centerY     Float
+  radiusX     Float
+  radiusY     Float
+  strokeId    String          @unique
+  stroke      Stroke          @relation(fields: [strokeId], references: [id], onDelete: Cascade)
+}
+
+model Arrow {
+  id          String          @id @default(uuid())
+  startX      Float
+  startY      Float
+  endX        Float
+  endY        Float
+  dx          Float
+  dy          Float
+  headlen     Float
+  angle       Float
+  strokeId    String          @unique
+  stroke      Stroke          @relation(fields: [strokeId], references: [id], onDelete: Cascade)
 }
 
 enum Color {
@@ -74,4 +111,7 @@ enum Color {
 
 enum StrokeType {
   rect
+  line
+  ellipse
+  arrow
 }

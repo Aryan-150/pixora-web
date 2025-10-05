@@ -1,4 +1,5 @@
 import { PrismaClient } from "./generated/prisma";
+import { StrokeType } from "./generated/prisma";
 
 const PrismaClientSingleton = () => {
   return new PrismaClient();
@@ -12,3 +13,4 @@ const prisma = globalThis.prisma ?? PrismaClientSingleton();
 
 export { prisma };
 export * from "./generated/prisma";
+export { StrokeType };

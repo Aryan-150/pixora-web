@@ -9,18 +9,18 @@ roomRouter.get("/chats/:roomId", userMiddleware, async(req,res) => {
   try {
     const roomId = req.params.roomId;
     // extract the old messages:
-    const messages = await prisma.stroke.findMany({
+    const strokes = await prisma.stroke.findMany({
       where: {
         roomId: roomId
       },
+      include: { rect: true, line: true, ellipse: true, arrow: true },
       orderBy: {
         sequenceNo: "desc"
-      },
-      take: 50
+      }
     })
 
     res.json({
-      messages: messages
+      strokes: strokes
     })
 
   } catch (error: any) {

@@ -1,9 +1,10 @@
 import { HTTP_URL_V1 } from "@repo/common/config";
 import axios from "axios";
-import { Point, Rect, Shapes } from "./types";
+import { Point, selectedTooltype, Shapes } from "./types";
 import { getClientSideCookie } from "@lib/getCookie";
 import { MessageCommand, ParsedMessageType } from "ws-backend/types";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { StrokeType } from "@repo/database/client";
 
 export class CanvasManager {
   private shapesInRoom: Shapes[];
@@ -16,11 +17,9 @@ export class CanvasManager {
 
   private clicked: boolean;
   private start: Point;
-  private selectedTool: string;
+  public selectedTool: selectedTooltype;
 
   constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket, router: AppRouterInstance) {
-    console.log('constructor gets called...!');
-
     this.shapesInRoom = [];
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
@@ -32,10 +31,31 @@ export class CanvasManager {
 
     this.clicked = false;
     this.start = { x: 0, y: 0 };
-    this.selectedTool = "rect";
+    this.selectedTool = selectedTooltype.Select;
     this.init();
     this.handleWs();
     this.getExistingShapes();
+    this.addEventListeners();
+  }
+
+  private init() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+    window.onresize = (e: UIEvent) => {
+      e.preventDefault();
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
+      this.clearCanvas();
+    }
+    document.addEventListener("visibilitychange", (e) => {
+      e.preventDefault();
+      if (document.visibilityState == "hidden") {
+        console.log("hidden");
+      }
+      if (document.visibilityState == "visible") {
+        console.log("visible");
+      }
+    })
   }
 
   public addEventListeners() {
@@ -46,40 +66,151 @@ export class CanvasManager {
 
   mouseDownHandler = (e: MouseEvent) => {
     e.preventDefault();
+    this.clearCanvas();
     this.clicked = true;
-    console.log(this.clicked);
-    console.log(`on mouse down: ${e.clientX} and ${e.clientY}`);
-    
-    this.start.x = e.clientX;
-    this.start.y = e.clientY;
-    console.log(`on mouse down: start: ${this.start}`);
-    
+    this.start.x = e.offsetX;
+    this.start.y = e.offsetY;
   }
 
   mouseUpHandler = (e: MouseEvent) => {
     e.preventDefault();
     this.clicked = false;
-    const width = e.clientX - this.start.x;
-    const height = e.clientY - this.start.y;
-    const shape: Shapes = {
-      type: "rect",
-      startX: this.start.x,
-      startY: this.start.y,
-      width: width,
-      height: height
+    const width = e.offsetX - this.start.x;
+    const height = e.offsetY - this.start.y;
+    let shape: Shapes | null = null;
+    switch (this.selectedTool) {
+      case selectedTooltype.Rect:
+        shape = {
+          type: StrokeType.rect,
+          startX: this.start.x,
+          startY: this.start.y,
+          width: width,
+          height: height
+        }
+        break;
+
+      case selectedTooltype.Line:
+        let endX = e.offsetX;
+        let endY = e.offsetY;
+        shape = {
+          type: StrokeType.line,
+          startX: this.start.x,
+          startY: this.start.y,
+          endX: endX,
+          endY: endY
+        }
+        break;
+
+      case selectedTooltype.Ellipse:
+        const radiusX = Math.abs(e.offsetX - this.start.x) / 2;
+        const radiusY = Math.abs(e.offsetY - this.start.y) / 2;
+        const ellipseCenterX = (e.offsetX + this.start.x) / 2;
+        const ellipseCenterY = (e.offsetY + this.start.y) / 2;
+        shape = {
+          type: StrokeType.ellipse,
+          centerX: ellipseCenterX,
+          centerY: ellipseCenterY,
+          radiusX: radiusX,
+          radiusY: radiusY
+        }
+        break;
+
+      case selectedTooltype.Arrow:
+        const dx = e.offsetX - this.start.x;
+        const dy = e.offsetY - this.start.y;
+        const headlen = (Math.sqrt(dx * dx + dy * dy) * 0.3) < 15 ? (Math.sqrt(dx * dx + dy * dy) * 0.3) : 15;
+        const angle = Math.atan2(dy, dx);
+
+        shape = {
+          type: StrokeType.arrow,
+          startX: this.start.x,
+          startY: this.start.y,
+          endX: e.offsetX,
+          endY: e.offsetY,
+          dx: dx,
+          dy: dy,
+          headlen: headlen,
+          angle: angle
+        }
+        break;
+
+      default:
+        break;
     }
-    this.addShape(shape);
+    if (shape) {
+      this.addShape(shape);
+    } else {
+      console.log("The shape is null");
+    }
   }
 
   mouseMoveHandler = (e: MouseEvent) => {
     e.preventDefault();
     if (!this.clicked) return;
-    const width = e.clientX - this.start.x;
-    const height = e.clientY - this.start.y;
-    this.ctx.strokeStyle = "#FFFFFF";
-    this.ctx.lineWidth = 2;
-    this.clearCanvas();
-    this.ctx.strokeRect(this.start.x, this.start.y, width, height);
+    const width = e.offsetX - this.start.x;
+    const height = e.offsetY - this.start.y;
+    switch (this.selectedTool) {
+      case selectedTooltype.Rect:
+        console.log("hii there form rect");
+
+        this.ctx.strokeStyle = "#FFFFFF";
+        this.ctx.lineWidth = 2;
+        this.clearCanvas();
+        this.ctx.strokeRect(this.start.x, this.start.y, width, height);
+        break;
+
+      case selectedTooltype.Line:
+        this.clearCanvas();
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.start.x, this.start.y);
+        this.ctx.lineTo(e.offsetX, e.offsetY);
+        this.ctx.strokeStyle = "#FFFFFF";
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+        break;
+
+      case selectedTooltype.Ellipse:
+        let radiusX = Math.abs(e.offsetX - this.start.x) / 2;
+        let radiusY = Math.abs(e.offsetY - this.start.y) / 2;
+        const ellipseCenterX = (e.offsetX + this.start.x) / 2;
+        const ellipseCenterY = (e.offsetY + this.start.y) / 2;
+        this.clearCanvas();
+        this.ctx.beginPath();
+        this.ctx.ellipse(ellipseCenterX, ellipseCenterY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+        this.ctx.strokeStyle = "#FFFFFF";
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+        break;
+
+      case selectedTooltype.Arrow:
+        const dx = e.offsetX - this.start.x;
+        const dy = e.offsetY - this.start.y;
+
+        const headlen = (Math.sqrt(dx * dx + dy * dy) * 0.3) < 15 ? (Math.sqrt(dx * dx + dy * dy) * 0.3) : 15;
+        const angle = Math.atan2(dy, dx);
+
+        this.clearCanvas();
+        this.ctx.strokeStyle = "#FFFFFF";
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.start.x, this.start.y);
+        this.ctx.lineTo(e.offsetX, e.offsetY);
+        this.ctx.stroke();
+        this.ctx.beginPath();
+        this.ctx.moveTo(
+          e.offsetX - headlen * Math.cos(angle - Math.PI / 6),
+          e.offsetY - headlen * Math.sin(angle - Math.PI / 6)
+        );
+        this.ctx.lineTo(e.offsetX, e.offsetY);
+        this.ctx.lineTo(
+          e.offsetX - headlen * Math.cos(angle + Math.PI / 6),
+          e.offsetY - headlen * Math.sin(angle + Math.PI / 6)
+        );
+        this.ctx.stroke();
+
+      default:
+        break;
+    }
   }
 
   public cleanUp() {
@@ -100,16 +231,13 @@ export class CanvasManager {
         this.socket.send(JSON.stringify(joinRoomMsgObj));
         console.log("joined the room");
 
-
         this.socket.onmessage = (ev: MessageEvent) => {
           ev.preventDefault();
-          console.log("message received");
-
           const message = ev.data;
-          console.log(message, typeof message);
+          console.log(message);
+
           // handle the broadcast:
-          const shape: Rect = JSON.parse(message);
-          console.log(shape);
+          const shape: Shapes = JSON.parse(message);
           this.shapesInRoom.push(shape);
           console.log(this.shapesInRoom);
           this.clearCanvas();
@@ -123,17 +251,6 @@ export class CanvasManager {
     }
   }
 
-  public init() {
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
-    window.onresize = (e: UIEvent) => {
-      e.preventDefault();
-      this.canvas.width = window.innerWidth;
-      this.canvas.height = window.innerHeight;
-      this.clearCanvas();
-    }
-  }
-
   public async getExistingShapes() {
     try {
       const response = await axios.get(`${HTTP_URL_V1}/room/chats/${this.roomId}`, {
@@ -141,10 +258,59 @@ export class CanvasManager {
           Authorization: this.token
         }
       });
-      const messages = response.data.messages;
-      console.log(messages, typeof messages);
-      const shapes = messages.map((msg: any) => {
-        return JSON.parse(msg.message)
+      const strokes = response.data.strokes;
+      const shapes = strokes.map((msg: any) => {
+        let shape: Shapes | null = null;
+        switch (msg.type) {
+          case StrokeType.rect:
+            shape = {
+              type: StrokeType.rect,
+              startX: msg.rect.startX,
+              startY: msg.rect.startY,
+              width: msg.rect.width,
+              height: msg.rect.height
+            }
+            break;
+          case StrokeType.line:
+            shape = {
+              type: StrokeType.line,
+              startX: msg.line.startX,
+              startY: msg.line.startY,
+              endX: msg.line.endX,
+              endY: msg.line.endY
+            }
+            break;
+
+          case StrokeType.ellipse:
+            shape = {
+              type: StrokeType.ellipse,
+              centerX: msg.ellipse.centerX,
+              centerY: msg.ellipse.centerY,
+              radiusX: msg.ellipse.radiusX,
+              radiusY: msg.ellipse.radiusY
+            }
+            break;
+
+          case StrokeType.arrow:
+            shape = {
+              type: StrokeType.arrow,
+              startX: msg.arrow.startX,
+              startY: msg.arrow.startY,
+              endX: msg.arrow.endX,
+              endY: msg.arrow.endY,
+              dx: msg.arrow.dx,
+              dy: msg.arrow.dy,
+              headlen: msg.arrow.headlen,
+              angle: msg.arrow.angle
+            }
+            break;
+
+          default:
+            console.error("Invalid shape");
+            break;
+        }
+
+        return shape;
       })
 
       this.shapesInRoom = [...this.shapesInRoom, ...shapes];
@@ -159,6 +325,7 @@ export class CanvasManager {
 
   public async addShape(shape: Shapes) {
     try {
+      console.log(shape);
       this.socket?.send(JSON.stringify({
         "type": "chat",
         "roomId": this.roomId,
@@ -175,27 +342,49 @@ export class CanvasManager {
     try {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.shapesInRoom.map((shape) => {
-        if (shape.type == "rect") {
-          this.ctx.strokeStyle = "#FFFFFF";
-          this.ctx.lineWidth = 2;
-          if( shape.startX !== undefined && 
-              shape.startY !== undefined && 
-              shape.width !== undefined &&
-              shape.height !== undefined){
-                this.ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
-              }
-        }
-        else if (shape.type == "circle") {
-          if( shape.centreX !== undefined &&
-              shape.centreY !== undefined &&
-              shape.radius !== undefined
-            ) {
-              this.ctx.beginPath();
-              this.ctx.arc(shape.centreX, shape.centreY, shape.radius, 0, 2 * Math.PI, false);
-              this.ctx.strokeStyle = "#FFFFFF";
-              this.ctx.lineWidth = 2;
-              this.ctx.stroke();
-            }
+        switch (shape.type) {
+          case StrokeType.rect:
+            this.ctx.strokeStyle = "#FFFFFF";
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(shape.startX!, shape.startY!, shape.width!, shape.height!);
+            break;
+          case StrokeType.line:
+            this.ctx.beginPath();
+            this.ctx.moveTo(shape.startX!, shape.startY!);
+            this.ctx.lineTo(shape.endX!, shape.endY!);
+            this.ctx.strokeStyle = "#FFFFFF"
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+            break;
+          case selectedTooltype.Ellipse:
+            this.ctx.beginPath();
+            this.ctx.ellipse(shape.centerX!, shape.centerY!, shape.radiusX!, shape.radiusY!, 0, 0, 2 * Math.PI);
+            this.ctx.strokeStyle = "#FFFFFF";
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+            break;
+          case selectedTooltype.Arrow:
+            this.ctx.strokeStyle = "#FFFFFF";
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(shape.startX!, shape.startY!);
+            this.ctx.lineTo(shape.endX!, shape.endY!);
+            this.ctx.stroke();
+            this.ctx.beginPath();
+            this.ctx.moveTo(
+              shape.endX! - shape.headlen! * Math.cos(shape.angle! - Math.PI / 6),
+              shape.endY! - shape.headlen! * Math.sin(shape.angle! - Math.PI / 6)
+            );
+            this.ctx.lineTo(shape.endX!, shape.endY!);
+            this.ctx.lineTo(
+              shape.endX! - shape.headlen! * Math.cos(shape.angle! + Math.PI / 6),
+              shape.endY! - shape.headlen! * Math.sin(shape.angle! + Math.PI / 6)
+            );
+            this.ctx.stroke();
+            break;
+
+          default:
+            break;
         }
       })
 
@@ -205,3 +394,4 @@ export class CanvasManager {
   }
 
 }
+

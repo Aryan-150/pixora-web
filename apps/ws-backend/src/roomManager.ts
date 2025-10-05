@@ -50,7 +50,6 @@ export class RoomManager {
         userId: userId,
         socket: socket
       })
-      console.log(this.rooms[roomId]);
 
       // push it to the redis queue:
       await this.redisClient.lPush(REDIS_ARG, JSON.stringify({
@@ -65,7 +64,7 @@ export class RoomManager {
     }
   }
 
-  public async sendMessage(roomId: string, userId: string, message: string) {
+  public async sendMessage(roomId: string, userId: string, message: string, ws: WebSocket) {
     try {
       if(!this.rooms[roomId]) throw new Error(`room with roomId: ${roomId} does not exists...!`);
       if(!message || message.trim() == "") throw new Error("message is empty...!");
@@ -80,7 +79,6 @@ export class RoomManager {
       this.rooms[roomId].sockets.forEach((s) => {
         s.socket.send(message);
       })
-      console.log("message was sent");
 
     } catch (error: any) {
       console.error(error.toString());
