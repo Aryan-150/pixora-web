@@ -34,3 +34,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/ui/icons
+
+# git rm -r --cached apps/web/ui/icons
+# git commit -m "Remove ui/icons from tracking"

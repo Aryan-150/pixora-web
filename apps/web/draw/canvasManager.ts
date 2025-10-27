@@ -14,8 +14,8 @@ export class CanvasManager {
   private ctx: CanvasRenderingContext2D;
   private socket: WebSocket;
   private router: AppRouterInstance;
-
-  private clicked: boolean;
+  
+  public clicked: boolean;
   private start: Point;
   public selectedTool: selectedTooltype;
 
@@ -391,6 +391,14 @@ export class CanvasManager {
     } catch (error: any) {
       console.error(error.message);
     }
+  }
+
+  public async leaveRoom() {
+    const leaveRoomMessageObj: ParsedMessageType = {
+      type: MessageCommand.leaveRoom,
+      roomId: this.roomId
+    }
+    this.socket.send(JSON.stringify(leaveRoomMessageObj));
   }
 
 }

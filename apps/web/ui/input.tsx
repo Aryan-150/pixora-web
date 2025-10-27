@@ -27,6 +27,7 @@ interface InputProps extends
   name: string;
   onChangeHandler?: () => void;
   reference?: Ref<HTMLInputElement>;
+  labelClassName?: string;
 }
 
 export default function Input({
@@ -38,13 +39,20 @@ export default function Input({
   onChangeHandler,
   reference,
   className,
+  labelClassName,
   ...props
 }: InputProps) {
   return (
     <div className={cn(
       "flex flex-col gap-1 items-start justify-center w-full"
     )}>
-      <label className="font-medium text-lg text-shadow-xs text-pixora-950/75" htmlFor={name}>{name}</label>
+      <label className={cn(
+        "font-medium text-lg text-shadow-xs text-pixora-950/75",
+        labelClassName
+      )} htmlFor={name}>
+        {name}
+      </label>
+      
       <input ref={reference} id={name} type={type} placeholder={placeholder} autoComplete="off"
         className={cn(
           inputStyles({intent, size}),

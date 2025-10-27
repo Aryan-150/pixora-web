@@ -2,7 +2,7 @@ import { cn } from "@repo/common/cn";
 import { cva, VariantProps } from "class-variance-authority";
 import { ButtonHTMLAttributes } from "react";
 
-const buttonDefaultStyles = "cursor-pointer transition-all duration-300 ease-in-out text-center";
+const buttonDefaultStyles = "cursor-pointer transition-all duration-300 ease-in-out text-center disabled:opacity-50 disabled:cursor-not-allowed";
 const buttonStyles = cva(buttonDefaultStyles, {
   variants: {
     variant: {
@@ -13,7 +13,8 @@ const buttonStyles = cva(buttonDefaultStyles, {
     size: {
       xs: "py-1.5 px-6 rounded-lg font-base font-semibold tracking-tight",
       sm: "py-2 px-8 rounded-lg font-base font-semibold tracking-tight",
-      md: "py-2.5 px-10 rounded-lg font-lg font-semibold"
+      md: "py-2.5 px-10 rounded-lg font-lg font-semibold tracking-tight",
+      lg: "py-4 px-10 rounded-lg font-lg font-semibold text-xl"
     }
   },
   defaultVariants: {
@@ -26,7 +27,7 @@ interface ButtonProps extends
   ButtonHTMLAttributes<HTMLButtonElement>,
   VariantProps<typeof buttonStyles>
 {
-  text: string;
+  children?: React.ReactNode;
   isLoading?: boolean;
   className?: string;
   onClick?: () => void;
@@ -35,7 +36,7 @@ interface ButtonProps extends
 export default function Button({
   variant,
   size,
-  text,
+  children,
   className,
   ...props
 }: ButtonProps) {
@@ -46,7 +47,7 @@ export default function Button({
     )}
     {...props}
     >
-      {text}
+      {children}
     </button>
   )
 }

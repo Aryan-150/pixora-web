@@ -20,7 +20,66 @@ export default function ToolBar({
       console.log(game.selectedTool, currentTool);
     }
   }, [currentTool])
-  
+
+  useEffect(() => {
+    document.onkeydown = (e) => {
+      if (game && !game.clicked) {
+        switch (e.key) {
+          //* Select:
+          case "s":
+          case "S":
+          case "1":
+            setCurrentTool(selectedTooltype.Select);
+            game.selectedTool = selectedTooltype.Select;
+            break;
+
+          //* Ellipse:
+          case "o":
+          case "O":
+          case "2":
+            setCurrentTool(selectedTooltype.Ellipse);
+            game.selectedTool = selectedTooltype.Ellipse;
+            break;
+
+            //* Rect:
+            case "r":
+            case "R":
+            case "3":
+              setCurrentTool(selectedTooltype.Rect);
+              game.selectedTool = selectedTooltype.Rect;
+              break;
+
+          //* Arrow:
+          case "a":
+          case "A":
+          case "4":
+            setCurrentTool(selectedTooltype.Arrow);
+            game.selectedTool = selectedTooltype.Arrow;
+            break;
+
+          //* Line:
+          case "l":
+          case "L":
+          case "5":
+            setCurrentTool(selectedTooltype.Line);
+            game.selectedTool = selectedTooltype.Line;
+            break;
+          
+          //* Eraser:
+          case "e":
+          case "E":
+          case "0":
+            setCurrentTool(selectedTooltype.Eraser);
+            game.selectedTool = selectedTooltype.Eraser;
+            break;
+
+          default:
+            break;
+        }
+      }
+    }
+  }, [game])
+
   return (
     <div className={cn(
       "w-fit h-fit fixed top-5 left-1/3 px-8 py-1.5 bg-[#262626] border-2 border-[#262626] rounded-lg",

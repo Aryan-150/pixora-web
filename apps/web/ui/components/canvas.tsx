@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import ToolBar from "./toolBar";
 import { cn } from "@repo/common/cn";
 import { selectedTooltype } from "@draw/types";
+import { Ellipsis } from "lucide-react";
+import Button from "@ui/button";
 
 export default function Canvas({
   roomId,
@@ -16,7 +18,19 @@ export default function Canvas({
 }) {
   const [game, setGame] = useState<CanvasManager | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isMenuClicked, setIsMenuClicked] = useState(false);
   const router = useRouter();
+
+  const leaveRoom = async () => {
+    try {
+      if(!game) throw new Error("game not found");
+      
+      await game.leaveRoom();
+      router.push("/canvas");
+    } catch (error: any) {
+      console.error(error.message);
+    }
+  }
 
   useEffect(() => {
     try {
@@ -29,7 +43,7 @@ export default function Canvas({
       return () => {
         canvasManager.cleanUp();
       }
-      
+
     } catch (error: any) {
       console.error(error.message);
     }
@@ -42,9 +56,50 @@ export default function Canvas({
       <canvas ref={canvasRef} className={cn(
         "bg-canvas-dark z-0",
         {
-          "cursor-crosshair" : game?.selectedTool != selectedTooltype.Select
+          "cursor-crosshair": game?.selectedTool != selectedTooltype.Select
         }
       )}></canvas>
+
+      <div className={cn(
+        "fixed bottom-5 right-5 z-50",
+        "flex flex-col items-end gap-3"
+      )}>
+        {isMenuClicked && (
+          <div className={cn(
+            "animate-in slide-in-from-bottom-2 fade-in duration-200",
+            "mb-2"
+          )}>
+            <Button
+              className={cn(
+                "shadow-lg hover:shadow-xl transition-all duration-200"
+              )}
+              variant={"white"}
+              size={"sm"}
+              onClick={leaveRoom}
+            >
+              Leave Room
+            </Button>
+          </div>
+        )}
+
+        <Button
+          className={cn(
+            "rounded-full p-2",
+            "bg-slate-800 border-2 border-white/50 hover:bg-slate-700 hover:border-white/70",
+            "flex justify-center items-center text-white",
+            "shadow-lg hover:shadow-xl",
+            {
+              "rotate-90": isMenuClicked
+            }
+          )}
+          onClick={() => {
+            setIsMenuClicked(c => !c);
+          }}
+          size={"xs"}
+        >
+          <Ellipsis />
+        </Button>
+      </div>
     </div>
   )
 }

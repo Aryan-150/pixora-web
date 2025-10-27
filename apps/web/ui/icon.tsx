@@ -15,6 +15,7 @@ export default function Icon({
   currentTool,
   setCurrentTool
 }: IconProps) {
+
   return (
     <button className={cn(
       "hover:cursor-pointer hover:bg-pixora-100/25 transition-all duration-300 ease-in-out rounded-md p-1.5 text-white",

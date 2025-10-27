@@ -2,7 +2,6 @@ import { cn } from "@repo/common/cn";
 import NavBar from "../ui/components/navBar";
 
 export default function Home() {
-
   return (
     <div className={cn(
       "w-screen h-screen bg-gradient-to-b from-pixora-950 from-30% to-pixora-800/90 via-85%"

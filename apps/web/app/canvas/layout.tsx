@@ -8,7 +8,7 @@ export default function PreCanvasPageLayout({
 }) {
   return (
     <main className={cn(
-      "w-screen h-screen"
+      "w-screen h-screen p-0 m-0"
     )}>
       {children}
     </main>

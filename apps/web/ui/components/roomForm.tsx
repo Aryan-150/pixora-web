@@ -46,8 +46,8 @@ export default function RoomForm() {
       <div className={cn(
         "w-full h-fit flex justify-center items-center gap-4"
       )}>
-        <Button variant={"white"} size={"sm"} text="Join Room" onClick={joinRoom} />
-        <Button variant={"secondary"} size={"sm"} text="Create Room" />
+        <Button variant={"white"} size={"sm"} onClick={joinRoom}>Join Room</Button>
+        <Button variant={"secondary"} size={"sm"}>Create Room</Button>
       </div>
     </div>
   )

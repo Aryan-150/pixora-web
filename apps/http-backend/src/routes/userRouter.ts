@@ -8,7 +8,6 @@ import userMiddleware from "../middlewares/userMiddleware";
 
 export const userRouter = Router();
 
-
 userRouter.post("/signup", async (req, res) => {
   const { success, error } = signupSchema.safeParse(req.body);
   if (!success) {
@@ -88,8 +87,10 @@ userRouter.post("/signin", async (req, res) => {
 
     res.json({
       msg: "signin completed...!",
-      token: userJwtToken
-    })
+      token: userJwtToken,
+      username: userWithEmail.username
+    });
+    
   } catch (error: any) {
     res.status(411).json({
       msg: error.message
@@ -178,5 +179,30 @@ userRouter.delete("/delete-room", userMiddleware, async(req, res) => {
     res.status(411).json({
       msg: error.message
     })
+  }
+})
+
+
+userRouter.get("/rooms-admin", userMiddleware, async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const userAsAdminInRooms = await prisma.user.findUnique({
+      where: {
+        id: userId
+      },
+      select: {
+        roomAdmin: true
+      }
+    });
+
+    res.json({
+      userAsAdminInRooms: userAsAdminInRooms?.roomAdmin
+    });
+    
+  } catch (error: any) {
+    res.status(411).json({
+      msg: "error while fetching the data of rooms as admin for user"
+    });
   }
 })

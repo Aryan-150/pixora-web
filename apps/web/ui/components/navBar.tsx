@@ -20,10 +20,10 @@ export default function NavBar({ isSignedIn }: {
           ?
           <div className="flex px-2 justify-center items-center gap-6">
             <a href="/signin">
-              <Button variant={"white"} text="Sign in" size={"xs"} />
+              <Button variant={"white"} size={"xs"}>Sign In</Button>
             </a>
             <a href="/signup">
-              <Button variant={"primary"} text="Sign up" size={"xs"} />
+              <Button variant={"primary"} size={"xs"}>Sign Up</Button>
             </a>
           </div>
           :
